@@ -1,4 +1,5 @@
 import os
+import json
 import sqlite3
 from pathlib import Path
 
@@ -11,6 +12,7 @@ from starlette.middleware.sessions import SessionMiddleware
 
 BASE_DIR = Path(__file__).resolve().parent
 DB_PATH = BASE_DIR / "02_dane" / "ir1_fts.sqlite"
+JSONL_PATH = BASE_DIR / "02_dane" / "ir1_paragrafy.jsonl"
 
 load_dotenv(BASE_DIR / ".env")
 
@@ -43,6 +45,74 @@ Styl:
 Na końcu:
 Podstawa: [IR1-§...]
 """.strip()
+
+
+def build_db_if_missing():
+    """
+    Jeśli baza SQLite już istnieje -> nic nie robi.
+    Jeśli nie istnieje -> buduje ją z pliku ir1_paragrafy.jsonl.
+    """
+    if DB_PATH.exists():
+        print(f"Baza już istnieje: {DB_PATH}")
+        return
+
+    if not JSONL_PATH.exists():
+        raise RuntimeError(f"Brak pliku JSONL do budowy bazy: {JSONL_PATH}")
+
+    print(f"Buduję bazę FTS z pliku: {JSONL_PATH}")
+
+    DB_PATH.parent.mkdir(parents=True, exist_ok=True)
+
+    con = sqlite3.connect(DB_PATH)
+    cur = con.cursor()
+
+    cur.execute("DROP TABLE IF EXISTS docs")
+    cur.execute("""
+        CREATE TABLE docs(
+            id TEXT PRIMARY KEY,
+            rozdzial TEXT,
+            paragraf TEXT,
+            tytul TEXT,
+            text TEXT
+        )
+    """)
+
+    cur.execute("DROP TABLE IF EXISTS docs_fts")
+    cur.execute("""
+        CREATE VIRTUAL TABLE docs_fts USING fts5(
+            id, rozdzial, paragraf, tytul, text,
+            content='docs', content_rowid='rowid'
+        )
+    """)
+
+    inserted = 0
+
+    with JSONL_PATH.open("r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+
+            r = json.loads(line)
+            cur.execute(
+                "INSERT INTO docs(id, rozdzial, paragraf, tytul, text) VALUES (?,?,?,?,?)",
+                (
+                    r["id"],
+                    r.get("rozdzial", ""),
+                    r.get("paragraf", ""),
+                    r.get("tytul", ""),
+                    r.get("text", "")
+                )
+            )
+            inserted += 1
+
+    cur.execute("INSERT INTO docs_fts(docs_fts) VALUES('rebuild')")
+
+    con.commit()
+    con.close()
+
+    print(f"OK. Zbudowano bazę FTS: {DB_PATH}")
+    print(f"Rekordów: {inserted}")
 
 
 def is_logged(request: Request) -> bool:
@@ -95,6 +165,10 @@ Fragmenty:
     )
 
     return (resp.output_text or "").strip()
+
+
+# Budowa bazy przy starcie aplikacji, jeśli jej nie ma
+build_db_if_missing()
 
 
 @app.get("/login", response_class=HTMLResponse)
