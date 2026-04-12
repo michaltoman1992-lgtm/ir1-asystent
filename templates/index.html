@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IR-1 Asystent</title>
+    <style>
+        :root {
+            --bg1: #0f172a;
+            --bg2: #1e293b;
+            --panel: rgba(255, 255, 255, 0.9);
+            --panel-strong: rgba(255, 255, 255, 0.96);
+            --text: #0f172a;
+            --muted: #475569;
+            --line: #dbe3ee;
+            --accent: #2563eb;
+            --accent2: #1d4ed8;
+            --okbg: #eff6ff;
+            --okline: #bfdbfe;
+            --errbg: #fef2f2;
+            --errline: #fecaca;
+            --errtext: #991b1b;
+            --shadow: 0 16px 40px rgba(15, 23, 42, 0.18);
+            --radius: 18px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            font-family: "Segoe UI", Arial, sans-serif;
+            color: var(--text);
+            background:
+                radial-gradient(circle at top left, #1d4ed8 0%, transparent 28%),
+                radial-gradient(circle at top right, #0ea5e9 0%, transparent 22%),
+                linear-gradient(135deg, var(--bg1), var(--bg2));
+            min-height: 100%;
+        }
+
+        .page {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 28px 18px 40px;
+        }
+
+        .hero {
+            color: white;
+            margin-bottom: 22px;
+            padding: 10px 4px 0;
+        }
+
+        .hero-badge {
+            display: inline-block;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 999px;
+            padding: 8px 12px;
+            margin-bottom: 14px;
+            backdrop-filter: blur(8px);
+        }
+
+        .hero h1 {
+            margin: 0;
+            font-size: 38px;
+            line-height: 1.05;
+            letter-spacing: -0.03em;
+        }
+
+        .hero p {
+            margin: 12px 0 0;
+            max-width: 900px;
+            font-size: 16px;
+            line-height: 1.6;
+            color: rgba(255, 255, 255, 0.88);
+        }
+
+        .layout {
+            display: grid;
+            grid-template-columns: 1.2fr 0.8fr;
+            gap: 20px;
+            align-items: start;
+        }
+
+        .card {
+            background: var(--panel);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(10px);
+        }
+
+        .card-strong {
+            background: var(--panel-strong);
+        }
+
+        .search-card {
+            padding: 22px;
+        }
+
+        .section-title {
+            margin: 0 0 10px;
+            font-size: 21px;
+            font-weight: 700;
+        }
+
+        .section-subtitle {
+            margin: 0 0 18px;
+            font-size: 14px;
+            color: var(--muted);
+            line-height: 1.5;
+        }
+
+        .label {
+            display: block;
+            margin-bottom: 10px;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 140px;
+            resize: vertical;
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            padding: 15px 16px;
+            font: inherit;
+            font-size: 15px;
+            line-height: 1.5;
+            background: white;
+            color: var(--text);
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+        }
+
+        textarea:focus {
+            border-color: #93c5fd;
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+        }
+
+        .button-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 14px;
+            align-items: center;
+        }
+
+        button {
+            border: none;
+            border-radius: 12px;
+            padding: 12px 18px;
+            font: inherit;
+            font-weight: 700;
+            cursor: pointer;
+            color: white;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            box-shadow: 0 10px 22px rgba(37, 99, 235, 0.25);
+            transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+        }
+
+        button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 14px 28px rgba(37, 99, 235, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            opacity: 0.75;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: 0 10px 22px rgba(37, 99, 235, 0.18);
+        }
+
+        .hint {
+            font-size: 13px;
+            color: var(--muted);
+        }
+
+        .side-col {
+            display: grid;
+            gap: 20px;
+        }
+
+        .info-card {
+            padding: 20px;
+        }
+
+        .info-card ul {
+            margin: 12px 0 0;
+            padding-left: 18px;
+            color: var(--muted);
+            line-height: 1.7;
+            font-size: 14px;
+        }
+
+        .status-box {
+            border-radius: 14px;
+            padding: 14px 16px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .status-error {
+            background: var(--errbg);
+            border: 1px solid var(--errline);
+            color: var(--errtext);
+        }
+
+        .status-ok {
+            background: var(--okbg);
+            border: 1px solid var(--okline);
+            color: #1e3a8a;
+        }
+
+        .results {
+            margin-top: 22px;
+            display: grid;
+            gap: 20px;
+        }
+
+        .result-card {
+            padding: 22px;
+        }
+
+        .result-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+
+        .result-head h2 {
+            margin: 0;
+            font-size: 22px;
+        }
+
+        .chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            border-radius: 999px;
+            padding: 8px 12px;
+            background: #e0ecff;
+            color: #1d4ed8;
+            font-size: 13px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .answer {
+            white-space: pre-wrap;
+            line-height: 1.65;
+            font-size: 15px;
+        }
+
+        .sources-list {
+            display: grid;
+            gap: 12px;
+        }
+
+        .source-item {
+            border: 1px solid var(--line);
+            background: #fff;
+            border-radius: 14px;
+            padding: 14px 16px;
+        }
+
+        .source-top {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 6px;
+            color: #0f172a;
+        }
+
+        .source-meta {
+            font-size: 13px;
+            color: var(--muted);
+            line-height: 1.5;
+        }
+
+        .empty-note {
+            padding: 18px;
+            border: 1px dashed #cbd5e1;
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.55);
+            color: var(--muted);
+            line-height: 1.6;
+            font-size: 14px;
+        }
+
+        .footer {
+            margin-top: 22px;
+            text-align: center;
+            color: rgba(255, 255, 255, 0.72);
+            font-size: 13px;
+        }
+
+        #loading-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.72);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            backdrop-filter: blur(4px);
+        }
+
+        .loader-box {
+            background: white;
+            padding: 30px 40px;
+            border-radius: 18px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            min-width: 280px;
+        }
+
+        .spinner {
+            width: 60px;
+            height: 60px;
+            border: 6px solid #e5e7eb;
+            border-top: 6px solid #2563eb;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        .loader-text {
+            font-weight: 700;
+            color: #1e293b;
+            font-size: 16px;
+        }
+
+        .loader-subtext {
+            margin-top: 8px;
+            color: #64748b;
+            font-size: 13px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 980px) {
+            .layout {
+                grid-template-columns: 1fr;
+            }
+
+            .hero h1 {
+                font-size: 30px;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .page {
+                padding: 18px 12px 30px;
+            }
+
+            .search-card,
+            .info-card,
+            .result-card {
+                padding: 16px;
+            }
+
+            .hero h1 {
+                font-size: 26px;
+            }
+
+            .hero p {
+                font-size: 15px;
+            }
+
+            textarea {
+                min-height: 120px;
+            }
+
+            .result-head {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .loader-box {
+                min-width: 0;
+                width: calc(100% - 32px);
+                padding: 24px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <div class="hero">
+            <div class="hero-badge">IR-1 · Asystent instrukcji</div>
+            <h1>Zapytaj instrukcję IR-1<br>jak człowiek, nie jak wyszukiwarkę</h1>
+            <p>
+                Wpisz pytanie dotyczące prowadzenia ruchu pociągów, manewrów, warunków,
+                procedur lub obowiązków. System przeszuka bazę paragrafów IR-1 i zbuduje
+                odpowiedź na podstawie użytych fragmentów.
+            </p>
+        </div>
+
+        <div class="layout">
+            <div>
+                <div class="card card-strong search-card">
+                    <h2 class="section-title">Zadaj pytanie</h2>
+                    <p class="section-subtitle">
+                        Najlepiej wpisywać pytania konkretne, na przykład:
+                        „manewry”, „jazda na widoczność”, „obowiązki dyżurnego ruchu”.
+                    </p>
+
+                    <form method="post" action="/ask" id="ask-form">
+                        <label class="label" for="question">Pytanie do IR-1</label>
+                        <textarea id="question" name="question" placeholder="Np. Jakie są zasady wykonywania manewrów?">{{ question }}</textarea>
+
+                        <div class="button-row">
+                            <button type="submit">Zapytaj</button>
+                            <div class="hint">Odpowiedź może chwilę potrwać, bo system przeszukuje bazę i pyta model.</div>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="results">
+                    {% if error %}
+                    <div class="card result-card">
+                        <div class="status-box status-error">
+                            <strong>Błąd:</strong> {{ error }}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if answer %}
+                    <div class="card card-strong result-card">
+                        <div class="result-head">
+                            <h2>Odpowiedź</h2>
+                            <div class="chip">Gotowe</div>
+                        </div>
+                        <div class="answer">{{ answer }}</div>
+                    </div>
+                    {% endif %}
+
+                    {% if used_rows %}
+                    <div class="card result-card">
+                        <div class="result-head">
+                            <h2>Użyte paragrafy</h2>
+                            <div class="chip">{{ used_rows|length }} źródeł</div>
+                        </div>
+
+                        <div class="sources-list">
+                            {% for row in used_rows %}
+                            <div class="source-item">
+                                <div class="source-top">
+                                    {{ row["id"] }} · {{ row["paragraf"] }} · {{ row["tytul"] }}
+                                </div>
+                                <div class="source-meta">
+                                    {{ row["rozdzial"] }}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if not answer and not error %}
+                    <div class="empty-note">
+                        Tutaj pojawi się odpowiedź oraz lista użytych paragrafów po wysłaniu pytania.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="side-col">
+                <div class="card info-card">
+                    <h2 class="section-title">Jak to działa</h2>
+                    <div class="status-box status-ok">
+                        System nie odpowiada „z głowy”. Najpierw przeszukuje Twoją bazę IR-1,
+                        wybiera trafne paragrafy, a dopiero potem buduje odpowiedź.
+                    </div>
+                    <ul>
+                        <li>wyszukiwanie w SQLite FTS</li>
+                        <li>pakietowanie trafnych fragmentów</li>
+                        <li>odpowiedź budowana na podstawie IR-1</li>
+                        <li>wyświetlenie użytych paragrafów</li>
+                    </ul>
+                </div>
+
+                <div class="card info-card">
+                    <h2 class="section-title">Przykładowe pytania</h2>
+                    <ul>
+                        <li>Jakie są zasady wykonywania manewrów?</li>
+                        <li>Kto prowadzi książkę przebiegów?</li>
+                        <li>Na czym polega jazda na widoczność?</li>
+                        <li>Jakie obowiązki ma dyżurny ruchu?</li>
+                        <li>Jakie są warunki wyjazdu manewrowego poza granice posterunku?</li>
+                    </ul>
+                </div>
+
+                <div class="card info-card">
+                    <h2 class="section-title">Stan aplikacji</h2>
+                    <ul>
+                        <li>wersja webowa działa lokalnie</li>
+                        <li>backend FastAPI działa</li>
+                        <li>baza FTS jest podłączona</li>
+                        <li>odpowiedzi generowane są przez OpenAI</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            IR-1 Asystent — lokalna wersja robocza
+        </div>
+    </div>
+
+    <div id="loading-overlay">
+        <div class="loader-box">
+            <div class="spinner"></div>
+            <div class="loader-text">Analizuję paragrafy IR-1...</div>
+            <div class="loader-subtext">To może potrwać kilkanaście sekund.</div>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById("ask-form");
+        const overlay = document.getElementById("loading-overlay");
+
+        if (form && overlay) {
+            form.addEventListener("submit", function () {
+                overlay.style.display = "flex";
+
+                const button = form.querySelector('button[type="submit"]');
+                if (button) {
+                    button.disabled = true;
+                    button.innerText = "Szukam...";
+                }
+            });
+        }
+    </script>
+</body>
+</html>

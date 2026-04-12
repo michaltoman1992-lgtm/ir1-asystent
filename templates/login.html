@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>Logowanie</title>
+</head>
+<body style="font-family: Arial; text-align: center; margin-top: 100px;">
+
+    <h2>🔐 Dostęp do IR-1</h2>
+
+    <form method="post">
+        <input type="password" name="password" placeholder="Hasło">
+        <button type="submit">Wejdź</button>
+    </form>
+
+    {% if error %}
+    <p style="color:red;">{{ error }}</p>
+    {% endif %}
+
+</body>
+</html>
