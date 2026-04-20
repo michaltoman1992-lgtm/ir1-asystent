@@ -537,18 +537,25 @@ def ask(request: Request, question: str = Form(...)):
 
     rows, search_variants = search_fts_multi(question, total_limit=8)
 
-    if not rows:
-        variants_text = ", ".join(search_variants[:5]) if search_variants else "brak"
-        return templates.TemplateResponse(
-            request=request,
-            name="index.html",
-            context={
-                "question": question,
-                "answer": f"Brak trafień w bazie.\n\nPróbowano wariantów: {variants_text}",
-                "used_rows": [],
-                "error": ""
-            }
-        )
+if not rows:
+    return templates.TemplateResponse(
+        request=request,
+        name="index.html",
+        context={
+            "question": question,
+            "answer": """Nie znaleziono trafień w bazie IR-1.
+
+             Spróbuj zadać pytanie inaczej lub użyj innych słów.
+
+             Przykłady:
+            - jazda na widoczność
+            - manewry
+            - książka przebiegów
+            - wyprawienie pociągu""",
+                             "used_rows": [],
+                            "error": ""
+        }
+    )
 
     pack = build_pack(rows)
 
