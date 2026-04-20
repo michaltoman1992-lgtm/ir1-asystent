@@ -207,7 +207,6 @@ STOPWORDS = {
 
 def normalize_text(text: str) -> str:
     text = text.lower().strip()
-    text = text.replace("ł", "ł")  # zostawiamy polskie znaki
     text = re.sub(r"[\"“”'`]", " ", text)
     text = re.sub(r"[^0-9a-zA-ZąćęłńóśźżĄĆĘŁŃÓŚŹŻ\s\-]", " ", text)
     text = re.sub(r"\s+", " ", text).strip()
@@ -248,7 +247,6 @@ def keyword_tokens(text: str):
             continue
         result.append(token)
 
-    # usunięcie duplikatów z zachowaniem kolejności
     unique = []
     seen = set()
     for token in result:
@@ -270,7 +268,6 @@ def make_match_query_from_tokens(tokens):
         token = token.strip()
         if not token:
             continue
-        # tylko normalne znaki
         if not re.fullmatch(r"[a-zA-ZąćęłńóśźżĄĆĘŁŃÓŚŹŻ0-9\-]+", token):
             continue
         safe_tokens.append(token)
@@ -321,7 +318,6 @@ def build_search_queries(question: str):
         if q5 not in queries:
             queries.append(q5)
 
-    # końcowe czyszczenie
     final_queries = []
     seen = set()
 
@@ -378,16 +374,13 @@ def search_fts_multi(question: str, total_limit: int = 8):
     for variant in search_variants:
         tokens = keyword_tokens(variant)
 
-        # próba 1: wszystkie tokeny przez AND
         match_query = make_match_query_from_tokens(tokens)
         rows = search_fts_raw(match_query, limit=4)
 
-        # próba 2: jeśli nic nie znalazło, spróbuj krócej
         if not rows and len(tokens) >= 2:
             shorter = make_match_query_from_tokens(tokens[:3])
             rows = search_fts_raw(shorter, limit=4)
 
-        # próba 3: jeśli dalej nic, spróbuj jednym najmocniejszym słowem
         if not rows and len(tokens) >= 1:
             one_word = make_match_query_from_tokens(tokens[:1])
             rows = search_fts_raw(one_word, limit=3)
@@ -535,27 +528,27 @@ def ask(request: Request, question: str = Form(...)):
             }
         )
 
-    rows, search_variants = search_fts_multi(question, total_limit=8)
+    rows, _search_variants = search_fts_multi(question, total_limit=8)
 
-if not rows:
-    return templates.TemplateResponse(
-        request=request,
-        name="index.html",
-        context={
-            "question": question,
-            "answer": """Nie znaleziono trafień w bazie IR-1.
+    if not rows:
+        return templates.TemplateResponse(
+            request=request,
+            name="index.html",
+            context={
+                "question": question,
+                "answer": """Nie znaleziono trafień w bazie IR-1.
 
-             Spróbuj zadać pytanie inaczej lub użyj innych słów.
+Spróbuj zadać pytanie inaczej lub użyj innych słów.
 
-             Przykłady:
-            - jazda na widoczność
-            - manewry
-            - książka przebiegów
-            - wyprawienie pociągu""",
-                             "used_rows": [],
-                            "error": ""
-        }
-    )
+Przykłady:
+- jazda na widoczność
+- manewry
+- książka przebiegów
+- wyprawienie pociągu""",
+                "used_rows": [],
+                "error": ""
+            }
+        )
 
     pack = build_pack(rows)
 
